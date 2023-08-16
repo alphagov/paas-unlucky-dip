@@ -10,12 +10,12 @@
     <meta name="author" content="Pavlos Ratis">
     <meta name="description" content="A role-playing game for incident management training">
     <meta name="keywords" content="Incident Response,Trainng,Site Reliability Engineering,SRE,Oncall">
-    <link rel="stylesheet" href="static/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
 
-    <link rel="apple-touch-icon" sizes="180x180" href="static/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="static/favicon-16x16.png">
-    <link rel="manifest" href="static/site.webmanifest">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', path='/img/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', path='/img/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', path='/img/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('specific_webmanifest') }}">
 </head>
 
 <body>
@@ -82,7 +82,7 @@
                 d="M16 0 A16 16 0 0 1 16 32 A16 16 0 0 1 16 0 M19 15 L13 15 L13 26 L19 26 z M16 6 A3 3 0 0 0 16 12 A3 3 0 0 0 16 6">
             </path>
         </svg>
-        <div class="ml3"><a class="navy" href="instructions.html">Instructions</a></div>
+        <div class="ml3"><a class="navy" href="{{url_for('ui_page', page='instructions')}}">Instructions</a></div>
     </div>
 
     <article class="cf pa4 mw center bg-white br3 pa3 mv4 ba b--black-10">
@@ -140,10 +140,12 @@
                 team or individual trainings. You can use <a href="https://github.com/inkle/inky">Inky</a> to write an
                 interactive narrative for an
                 incident and then export the story as JSON. Then, you can store the story file inside the
-                <a href="https://github.com/dastergon/wheel-of-misfortune/tree/master/incidents">incidents/</a> folder and associate the Ink story file with an Incident scenario using the <b>inkstory</b> key. 
+                <a href="https://github.com/dastergon/wheel-of-misfortune/tree/master/incidents">incidents/</a> folder
+                and associate the Ink story file with an Incident scenario using the <b>inkstory</b> key.
                 You can have a look at the <a
                     href="https://github.com/dastergon/wheel-of-misfortune/tree/master/incidentsredis-story.json">incident
-                    narrative example</a>.</p>
+                    narrative example</a>.
+            </p>
             </p>
             <h4>Game Master</h4>
             <ol>

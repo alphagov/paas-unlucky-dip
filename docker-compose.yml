@@ -1,0 +1,10 @@
+version: "3.3"
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566-4599:4566-4599"
+    environment:
+      - SERVICES=s3
+    volumes:
+      - "./.localstack/provision-s3.sh:/etc/localstack/init/ready.d/script.sh"

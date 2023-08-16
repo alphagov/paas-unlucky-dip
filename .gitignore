@@ -1,2 +1,4 @@
 incidents/*.json
 incidents/*.jsonnet
+.env
+.venv
