@@ -27,6 +27,9 @@ async def auth_callback(request: Request):
     except OAuthError:
         return Response("Authentication failed", status_code=401)
     user_data = await OAuthConfig.client.userinfo(token=token)
+    if not await OAuthConfig.user_is_org_member(token=token, user_data=user_data):
+        request.session.clear()
+        return Response("User is not an org member", status_code=401)
     request.session["user"] = dict(user_data)
 
     return RedirectResponse(request.session.pop("pre_login_url"))

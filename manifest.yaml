@@ -1,5 +1,12 @@
 ---
 applications:
-  - name: unlucky-dip
+  - name: unlucky-dip-py
     buildpacks:
-      - staticfile_buildpack
+      - python_buildpack
+    services:
+      - unlucky-dip-bucket
+    env:
+      GITHUB_CLIENT_ID: ((github_client_id))
+      GITHUB_CLIENT_SECRET: ((github_client_secret))
+      GITHUB_ORG: alphagov
+      SECRET_KEY: ((secret_key))

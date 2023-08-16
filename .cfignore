@@ -1,6 +1,8 @@
 incidents/*.sample
 .env
 .venv
+.vscode
+.localstack
 .gitignore
 LICENSE
 manifest.yaml

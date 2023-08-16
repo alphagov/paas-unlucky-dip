@@ -39,11 +39,14 @@ class OauthData:
 
 
 class GithubOAuthConfig(OauthData):
+    GITHUB_ORG: str
+
     def __init__(self):
         super().__init__()
         try:
             self.CLIENT_ID = os.environ["GITHUB_CLIENT_ID"]
             self.CLIENT_SECRET = os.environ["GITHUB_CLIENT_SECRET"]
+            self.GITHUB_ORG = os.environ["GITHUB_ORG"]
         except KeyError as exc:
             raise OauthEnvarMissing(*exc.args) from exc
 
@@ -64,6 +67,11 @@ class GithubOAuthConfig(OauthData):
     @property
     def client(self) -> StarletteOAuth2App:
         return self.oauth.github
+
+    async def user_is_org_member(self, *, token: dict, user_data: dict) -> bool:
+        orgs = await self.client.get(user_data["organizations_url"], token=token)
+        orgs.raise_for_status()
+        return any(org["login"] == self.GITHUB_ORG for org in orgs.json())
 
 
 OAuthConfig = GithubOAuthConfig()
