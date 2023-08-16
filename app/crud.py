@@ -29,14 +29,28 @@ def init_default_incident_set(
 
 def get_incident_set(client: DipS3Client, incident_set_id: str) -> IncidentSet:
     try:
-        blob = client.get_object(Key=f"{incident_set_id}.json")
+        s3_obj = client.get_object(Key=f"{incident_set_id}.json")
     except client.exceptions.NoSuchKey as exc:
         raise ObjectNotFoundException from exc
-    return IncidentSet.model_validate_json(blob)
+    return IncidentSet.from_s3_object(s3_obj)
+
+
+def get_all_incident_sets(client: DipS3Client) -> list[IncidentSet]:
+    for o in client.get_all_objects():
+        yield IncidentSet.from_s3_object(client.get_object(Key=o["Key"]))
 
 
 def put_incident_set(client: DipS3Client, incident_set: IncidentSet) -> None:
+    if isinstance(incident_set.id, str):
+        file_id = incident_set.id
+    else:
+        file_id = incident_set.id.hex
+
     return client.put_object(
-        Key=f"{incident_set.id}.json",
+        Key=f"{file_id}.json",
         Body=incident_set.model_dump_json().encode("utf-8"),
     )
+
+
+def delete_incident_set(client: DipS3Client, incident_set_id: str) -> None:
+    return client.delete_object(Key=f"{incident_set_id}.json")

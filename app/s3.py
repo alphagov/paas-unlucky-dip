@@ -1,10 +1,10 @@
 import json
 import os
-from pathlib import Path
 
 import boto3
 from mypy_boto3_s3.client import Exceptions
 from mypy_boto3_s3.client import S3Client as S3ClientType
+from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
 
 
 class DipS3Client:
@@ -29,11 +29,17 @@ class DipS3Client:
     def exceptions(self) -> Exceptions:
         return self.client.exceptions
 
-    def get_object(self, Key: str) -> bytes:
-        return self.client.get_object(Bucket=self.bucket, Key=Key)["Body"].read()
+    def get_object(self, Key: str) -> GetObjectOutputTypeDef:
+        return self.client.get_object(Bucket=self.bucket, Key=Key)
+
+    def get_all_objects(self) -> list:
+        return self.client.list_objects_v2(Bucket=self.bucket)["Contents"]
 
     def put_object(self, Key: str, Body: bytes, **kwargs):
         return self.client.put_object(Bucket=self.bucket, Key=Key, Body=Body, **kwargs)
+
+    def delete_object(self, Key: str):
+        return self.client.delete_object(Bucket=self.bucket, Key=Key)
 
 
 S3Client = DipS3Client()

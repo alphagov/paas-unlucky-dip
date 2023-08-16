@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <title>Add New Incident Set</title>
+
+  <!-- Bootstrap -->
+  <link href="{{ url_for('static', path='/css/bootstrap.min.css') }}" rel="stylesheet">
+
+  <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+      <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+  <div class="container">
+    {# <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+      <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+        <svg class="bi me-2" width="40" height="32">
+          <use xlink:href="#bootstrap" />
+        </svg>
+        <span class="fs-4">Simple header</span>
+      </a>
+
+      <ul class="nav nav-pills">
+        <li class="nav-item"><a href="#" class="nav-link active" aria-current="page">Home</a></li>
+        <li class="nav-item"><a href="#" class="nav-link">Features</a></li>
+        <li class="nav-item"><a href="#" class="nav-link">Pricing</a></li>
+        <li class="nav-item"><a href="#" class="nav-link">FAQs</a></li>
+        <li class="nav-item"><a href="#" class="nav-link">About</a></li>
+      </ul>
+    </header> #}
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+      <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+        <div class="me-2" width="40" height="32">
+          <img src="{{ url_for('static', path='/img/favicon-32x32.png') }}" alt="" width="32" height="32">
+        </div>
+        <span class="fs-4">Manage Incident Sets</span>
+      </a>
+      {% if request.session %}
+      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+        <li><a href="{{ url_for('ui_manage_new') }}" class="nav-link px-2 link-secondary">New</a></li>
+        <li><a href="{{ url_for('ui_manage_list') }}" class="nav-link px-2 link-body-emphasis">List</a></li>
+      </ul>
+
+      <div class="dropdown text-end">
+        <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          <img src="{{request.session.user.avatar_url}}" alt="{{request.session.user.login}}" width="32" height="32"
+            class="rounded-circle">
+        </a>
+        <ul class="dropdown-menu text-small">
+          <li><a class="dropdown-item" href="{{ url_for('auth_logout') }}">Sign out</a></li>
+        </ul>
+      </div>
+      {% else %}
+      <a class="btn btn-outline-primary me-2" href="{{ url_for('auth_login') }}">Login</a>
+      {% endif %}
+    </header>
+
+    <main>
+      {% if request.session %}
+      {% if action == "new" %}
+      <form id="incidentSetForm">
+        <div class="row g-3 incident">
+          <div class="col-sm-3">
+            <input type="text" class="form-control inputTitle" placeholder="Title" aria-label="Title" required>
+          </div>
+          <div class="col-sm">
+            <input type="text" class="form-control inputScenario" placeholder="Scenario" aria-label="Scenario" required>
+          </div>
+          <div class="col-sm-1">
+            <input class="btn btn-outline-danger removeIncident" type="button" value="Remove"
+              onclick="removeIncident(this)" disabled>
+          </div>
+        </div>
+        <div class="row justify-content-md-center">
+          <div class="col col-lg-1">
+            <input class="btn btn-outline-primary" type="button" value="Add Another" onclick="addAnother()">
+          </div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
+      {% elif action == "edit" %}
+      <form id="editIncidentSetForm" data-set-id="{{incident_set.id}}">
+        {% for incident in incident_set.incidents.root %}
+        <div class="row g-3 incident">
+          <div class="col-sm-3">
+            <input type="text" class="form-control inputTitle" placeholder="Title" aria-label="Title" required
+              value="{{incident.title}}">
+          </div>
+          <div class="col-sm">
+            <input type="text" class="form-control inputScenario" placeholder="Scenario" aria-label="Scenario" required
+              value="{{incident.scenario}}">
+          </div>
+          <div class="col-sm-1">
+            <input class="btn btn-outline-danger removeIncident" type="button" value="Remove"
+              onclick="removeIncident(this)">
+          </div>
+        </div>
+        {% endfor %}
+        <div class="row justify-content-md-center">
+          <div class="col col-lg-1">
+            <input class="btn btn-outline-primary" type="button" value="Add Another" onclick="addAnother()">
+          </div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
+      {% elif action == "list" %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Created</th>
+            <th scope="col">Last Modified</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for set in incident_sets %}
+          <tr data-set-id="{{set.id}}" class="incident-set">
+            <td>{{set.id}}</th>
+            <td>{{set.created.strftime("%Y-%m-%dT%H:%M:%S%z")}}</td>
+            <td>{{set.last_modified.strftime("%Y-%m-%dT%H:%M:%S%z") }}</td>
+            <td>
+              <div class="col">
+                <a href="{{ url_for('ui_wheel', incident_set_id=set.id) }}" class="btn btn-outline-success">Wheel</a>
+                <a href="{{ url_for('ui_manage_edit', incident_set_id=set.id) }}"
+                  class="btn btn-outline-primary">Edit</a>
+                <button class="btn btn-outline-danger" onclick="deleteSet(this)" {% if set.is_default %}disabled{% endif
+                  %}>Delete</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="alert alert-danger" role="alert">
+        Invalid action.
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="alert alert-danger" role="alert">
+        You must be logged in to add a new incident set.
+      </div>
+      {% endif %}
+    </main>
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="{{ url_for('static', path='/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', path='/js/manage.js') }}"></script>
+</body>
+
+</html>
