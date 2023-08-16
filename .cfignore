@@ -1,0 +1,7 @@
+incidents/*.sample
+.env
+.venv
+.gitignore
+LICENSE
+manifest.yaml
+README.md

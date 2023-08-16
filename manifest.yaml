@@ -1,0 +1,5 @@
+---
+applications:
+  - name: unlucky-dip
+    buildpacks:
+      - staticfile_buildpack
