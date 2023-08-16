@@ -32,8 +32,22 @@ async def ui_manage_list(request: Request):
         "manage.html",
         context={
             "request": request,
-            "action": "list",
+            "action": "list_all",
             "incident_sets": crud.get_all_incident_sets(S3Client),
+        },
+    )
+
+
+@router.get("/manage/list/mine")
+async def ui_manage_list_mine(request: Request):
+    return html_templates.TemplateResponse(
+        "manage.html",
+        context={
+            "request": request,
+            "action": "list_mine",
+            "incident_sets": crud.get_all_incident_sets(
+                S3Client, creator=request.session["user"]["login"]
+            ),
         },
     )
 

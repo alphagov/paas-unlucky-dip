@@ -1,14 +1,20 @@
+from datetime import datetime, timezone
 from typing import List
 
-from pydantic import BaseModel, Field, RootModel, field_validator, field_serializer
-from pydantic import AwareDatetime, ConfigDict
-from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
-
-from datetime import datetime, timezone
-
-from ulid import ULID
+from dateutil import zoneinfo
 
 import nh3
+from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    RootModel,
+    field_serializer,
+    field_validator,
+)
+from ulid import ULID
 
 
 class Incident(BaseModel):
@@ -38,7 +44,10 @@ class IncidentSet(BaseModel):
     incidents: IncidentList
     is_default: bool = Field(default=False)
     last_modified: AwareDatetime | None = Field(default=None, exclude=True)
-    created: AwareDatetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created: AwareDatetime = Field(
+        default_factory=lambda: datetime.now(zoneinfo.gettz("UTC"))
+    )
+    creator: str | None = Field(default=None)
 
     @field_serializer("id")
     def serialize_id(self, v: ULID | str) -> str:

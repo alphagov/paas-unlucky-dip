@@ -35,9 +35,13 @@ def get_incident_set(client: DipS3Client, incident_set_id: str) -> IncidentSet:
     return IncidentSet.from_s3_object(s3_obj)
 
 
-def get_all_incident_sets(client: DipS3Client) -> list[IncidentSet]:
+def get_all_incident_sets(
+    client: DipS3Client, creator: str | None = None
+) -> list[IncidentSet]:
     for o in client.get_all_objects():
-        yield IncidentSet.from_s3_object(client.get_object(Key=o["Key"]))
+        i_set = IncidentSet.from_s3_object(client.get_object(Key=o["Key"]))
+        if creator is None or i_set.creator == creator:
+            yield i_set
 
 
 def put_incident_set(client: DipS3Client, incident_set: IncidentSet) -> None:

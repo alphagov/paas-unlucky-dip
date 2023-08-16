@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 
 
 from app import crud
@@ -20,8 +20,10 @@ def api_get_incident_set(incident_set_id: str):
 
 
 @router.put("/sets", status_code=201, dependencies=[Depends(verify_user)])
-def api_put_incident_set(incident_list: IncidentList):
-    incident_set = IncidentSet(incidents=incident_list)
+def api_put_incident_set(request: Request, incident_list: IncidentList):
+    incident_set = IncidentSet(
+        incidents=incident_list, creator=request.session["user"]["login"]
+    )
     crud.put_incident_set(S3Client, incident_set)
     return incident_set
 

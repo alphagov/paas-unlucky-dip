@@ -1,8 +1,8 @@
-from fastapi import Response, APIRouter, Request
+from fastapi import Response, APIRouter, Request, Depends
 from fastapi.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuthError
 
-from app.auth import OAuthConfig
+from app.auth import OAuthConfig, verify_user
 
 router = APIRouter()
 
@@ -31,5 +31,23 @@ async def auth_callback(request: Request):
         request.session.clear()
         return Response("User is not an org member", status_code=401)
     request.session["user"] = dict(user_data)
+    request.session["token"] = dict(token)
 
     return RedirectResponse(request.session.pop("pre_login_url"))
+
+
+@router.get("/github/user/{login}", dependencies=[Depends(verify_user)])
+async def get_user(request: Request, login: str) -> dict:
+    return await OAuthConfig.client.get(
+        f"users/{login}",
+        token=request.session["token"],
+    )
+
+
+@router.get("/github/picture/{login}", dependencies=[Depends(verify_user)])
+async def get_user_picture(request: Request, login: str) -> dict:
+    data = await OAuthConfig.client.get(
+        f"users/{login}",
+        token=request.session["token"],
+    )
+    return RedirectResponse(data.json()["avatar_url"])

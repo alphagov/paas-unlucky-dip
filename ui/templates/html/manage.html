@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-  <title>Add New Incident Set</title>
+  <title>Manage Incident Sets</title>
 
   <!-- Bootstrap -->
   <link href="{{ url_for('static', path='/css/bootstrap.min.css') }}" rel="stylesheet">
@@ -21,48 +21,44 @@
 
 <body>
   <div class="container">
-    {# <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
-      <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-        <svg class="bi me-2" width="40" height="32">
-          <use xlink:href="#bootstrap" />
-        </svg>
-        <span class="fs-4">Simple header</span>
-      </a>
+    <header class="p-3 mb-3 border-bottom">
+      <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+          <a href="/manage" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none">
+            <div class="me-2" width="40" height="32">
+              <img src="{{ url_for('static', path='/img/favicon-32x32.png') }}" alt="" width="32" height="32">
+            </div>
+          </a>
+          {% if request.session %}
+          <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+            <li><a href="{{ url_for('ui_manage_list') }}"
+                class="nav-link px-2 {% if action == 'list_all' %}link-secondary{% else %}link-body-emphasis{% endif %}">List
+                All</a>
+            </li>
+            <li><a href="{{ url_for('ui_manage_list_mine') }}"
+                class="nav-link px-2 {% if action == 'list_mine' %}link-secondary{% else %}link-body-emphasis{% endif %}">List
+                Mine</a>
+            </li>
+            <li><a href="{{ url_for('ui_manage_new') }}"
+                class="nav-link px-2 {% if action == 'new' %}link-secondary{% else %}link-body-emphasis{% endif %}">New</a>
+            </li>
+          </ul>
 
-      <ul class="nav nav-pills">
-        <li class="nav-item"><a href="#" class="nav-link active" aria-current="page">Home</a></li>
-        <li class="nav-item"><a href="#" class="nav-link">Features</a></li>
-        <li class="nav-item"><a href="#" class="nav-link">Pricing</a></li>
-        <li class="nav-item"><a href="#" class="nav-link">FAQs</a></li>
-        <li class="nav-item"><a href="#" class="nav-link">About</a></li>
-      </ul>
-    </header> #}
-    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
-      <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-        <div class="me-2" width="40" height="32">
-          <img src="{{ url_for('static', path='/img/favicon-32x32.png') }}" alt="" width="32" height="32">
+          <div class="dropdown text-end">
+            <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="{{request.session.user.avatar_url}}" alt="{{request.session.user.login}}" width="32" height="32"
+                class="rounded-circle">
+            </a>
+            <ul class="dropdown-menu text-small">
+              <li><a class="dropdown-item" href="{{ url_for('auth_logout') }}">Sign out</a></li>
+            </ul>
+          </div>
+          {% else %}
+          <a class="btn btn-outline-primary me-2" href="{{ url_for('auth_login') }}">Login</a>
+          {% endif %}
         </div>
-        <span class="fs-4">Manage Incident Sets</span>
-      </a>
-      {% if request.session %}
-      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
-        <li><a href="{{ url_for('ui_manage_new') }}" class="nav-link px-2 link-secondary">New</a></li>
-        <li><a href="{{ url_for('ui_manage_list') }}" class="nav-link px-2 link-body-emphasis">List</a></li>
-      </ul>
-
-      <div class="dropdown text-end">
-        <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown"
-          aria-expanded="false">
-          <img src="{{request.session.user.avatar_url}}" alt="{{request.session.user.login}}" width="32" height="32"
-            class="rounded-circle">
-        </a>
-        <ul class="dropdown-menu text-small">
-          <li><a class="dropdown-item" href="{{ url_for('auth_logout') }}">Sign out</a></li>
-        </ul>
       </div>
-      {% else %}
-      <a class="btn btn-outline-primary me-2" href="{{ url_for('auth_login') }}">Login</a>
-      {% endif %}
     </header>
 
     <main>
@@ -117,13 +113,14 @@
           <button type="submit" class="btn btn-primary">Submit</button>
         </div>
       </form>
-      {% elif action == "list" %}
+      {% elif action in ["list_all", "list_mine"] %}
       <table class="table">
         <thead>
           <tr>
             <th scope="col">ID</th>
             <th scope="col">Created</th>
             <th scope="col">Last Modified</th>
+            <th scope="creator">Creator</th>
             <th scope="col">Actions</th>
           </tr>
         </thead>
@@ -131,8 +128,26 @@
           {% for set in incident_sets %}
           <tr data-set-id="{{set.id}}" class="incident-set">
             <td>{{set.id}}</th>
-            <td>{{set.created.strftime("%Y-%m-%dT%H:%M:%S%z")}}</td>
-            <td>{{set.last_modified.strftime("%Y-%m-%dT%H:%M:%S%z") }}</td>
+            <td><span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{set.created |
+                date_rfc1123}}">{{set.created |
+                date_relative}}</span></td>
+            <td><span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{set.last_modified |
+                date_rfc1123}}">{{set.last_modified |
+                date_relative}}</span></td>
+            <td>{% if set.creator %}
+              <div class="d-flex">
+                <a href="https://github.com/{{set.creator}}" class="text-decoration-none" target="_blank">
+                  <span
+                    class="badge d-flex align-items-center p-1 pe-2 text-dark-emphasis bg-light-subtle border border-dark-subtle rounded-pill">
+                    <img class="rounded-circle me-1" width="24" height="24" src="https://github.com/{{set.creator}}.png"
+                      alt="{{set.creator}}">{{set.creator}}
+                  </span>
+                </a>
+              </div>
+              {% else %}
+              -
+              {% endif %}
+            </td>
             <td>
               <div class="col">
                 <a href="{{ url_for('ui_wheel', incident_set_id=set.id) }}" class="btn btn-outline-success">Wheel</a>

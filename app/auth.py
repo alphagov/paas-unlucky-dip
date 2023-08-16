@@ -7,6 +7,8 @@ from fastapi import HTTPException
 
 from fastapi import Request
 
+from asgiref.sync import async_to_sync
+
 
 class OauthEnvarMissing(KeyError):
     def __init__(self, *args):
@@ -67,6 +69,11 @@ class GithubOAuthConfig(OauthData):
     @property
     def client(self) -> StarletteOAuth2App:
         return self.oauth.github
+
+    async def get_user_by_login(self, *, token: dict, login: str) -> dict:
+        user = await self.client.get(f"users/{login}", token=token)
+        user.raise_for_status()
+        return user.json()
 
     async def user_is_org_member(self, *, token: dict, user_data: dict) -> bool:
         orgs = await self.client.get(user_data["organizations_url"], token=token)
