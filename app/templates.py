@@ -3,6 +3,8 @@ from datetime import datetime
 import pendulum
 from fastapi.templating import Jinja2Templates
 
+from app.config import Config
+
 
 def date_iso8601(date: pendulum.DateTime | datetime) -> str:
     if isinstance(date, datetime):
@@ -26,6 +28,7 @@ html_templates = Jinja2Templates(directory="ui/templates/html")
 html_templates.env.filters["date_iso8601"] = date_iso8601
 html_templates.env.filters["date_rfc1123"] = date_rfc1123
 html_templates.env.filters["date_relative"] = date_relative
+html_templates.env.globals["default_creator"] = Config.default_creator
 
 js_templates = Jinja2Templates(directory="ui/templates/js")
 misc_templates = Jinja2Templates(directory="ui/templates/misc")

@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request
 
 from app import crud
 from app.config import Config
 from app.s3 import S3Client
 from app.templates import html_templates
-from app.auth import verify_admin
+
+from app.models import UUID4
 
 router = APIRouter()
 
@@ -41,7 +42,9 @@ async def ui_manage_list(request: Request):
         context={
             "request": request,
             "action": "list",
-            "incident_sets": crud.get_all_incident_sets(S3Client),
+            "incident_sets": crud.get_all_incident_sets(
+                S3Client, request.session["user"]["login"]
+            ),
         },
     )
 
@@ -57,8 +60,8 @@ async def ui_manage_new(request: Request):
     )
 
 
-@router.get("/manage/edit/{incident_set_id}}")
-async def ui_manage_edit(request: Request, incident_set_id: str):
+@router.get("/manage/edit/{incident_set_id}")
+async def ui_manage_edit(request: Request, incident_set_id: UUID4):
     try:
         incident_set = crud.get_incident_set(S3Client, incident_set_id)
     except crud.ObjectNotFoundException as exc:
@@ -74,7 +77,7 @@ async def ui_manage_edit(request: Request, incident_set_id: str):
 
 
 @router.get("/manage/delete/{incident_set_id}")
-async def ui_manage_delete(request: Request, incident_set_id: str):
+async def ui_manage_delete(request: Request, incident_set_id: UUID4):
     try:
         incident_set = crud.get_incident_set(S3Client, incident_set_id)
     except crud.ObjectNotFoundException as exc:

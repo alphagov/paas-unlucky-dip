@@ -137,7 +137,7 @@
             <td><span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{set.last_modified |
                 date_rfc1123}}">{{set.last_modified |
                 date_relative}}</span></td>
-            <td>{% if set.creator and set.creator != 'system' %}
+            <td>{% if set.creator and set.creator != default_creator %}
               <div class="d-flex">
                 <a href="https://github.com/{{set.creator}}" class="text-decoration-none" target="_blank">
                   <span
@@ -148,7 +148,17 @@
                 </a>
               </div>
               {% else %}
-              [system]
+              <div class="d-flex">
+                <span
+                  class="badge d-flex align-items-center p-1 pe-2 text-dark-emphasis bg-light-subtle border border-dark-subtle rounded-pill">
+                  {# <a href="https://www.flaticon.com/free-icons/robot" title="robot icons">Robot icons created by
+                    Hilmy Abiyyu A. - Flaticon</a> #}
+                  <img class="rounded-circle me-1" width="24" height="24"
+                    src="{{ url_for('static', path='/img/robot.png') }}" alt="Robot icons created by
+                    Hilmy Abiyyu A. - Flaticon">[system]
+                </span>
+                </a>
+              </div>
               {% endif %}
             </td>
             <td>

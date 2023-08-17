@@ -51,7 +51,7 @@ def get_incident_set(client: DipS3Client, incident_set_id: UUID4) -> IncidentSet
 
 
 def get_all_incident_sets(client: DipS3Client, *creators: str):
-    creators = [None, *creators]
+    creators = [Config.default_creator, *creators]
     for i in Index.ids(*creators):
         try:
             yield get_incident_set(client=client, incident_set_id=i)
