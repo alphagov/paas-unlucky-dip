@@ -2,3 +2,4 @@ incidents/*.json
 incidents/*.jsonnet
 .env
 .venv
+requirements.txt

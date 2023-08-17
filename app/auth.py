@@ -7,8 +7,6 @@ from fastapi import HTTPException
 
 from fastapi import Request
 
-from asgiref.sync import async_to_sync
-
 
 class OauthEnvarMissing(KeyError):
     def __init__(self, *args):
