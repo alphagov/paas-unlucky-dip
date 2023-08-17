@@ -1,9 +1,14 @@
-incidents/*.sample
-.env
+.env\*
 .venv
 .vscode
-.localstack
+.localstack/
 .gitignore
+.python-version
+jsconfig.json
 LICENSE
 manifest.yaml
 README.md
+Makefile
+poetry.lock
+pyproject.toml
+docker-compose.yml

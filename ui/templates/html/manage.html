@@ -163,7 +163,8 @@
             </td>
             <td>
               <div class="col">
-                <a href="{{ url_for('ui_wheel', incident_set_id=set.id) }}" class="btn btn-outline-success">Wheel</a>
+                <a href="{{ url_for('ui_wheel', incident_set_id=set.id) }}" class="btn btn-outline-success"
+                  target="_blank">Wheel</a>
                 <a href="{{ url_for('ui_manage_edit', incident_set_id=set.id) }}"
                   class="btn btn-outline-primary">Edit</a>
                 <button class="btn btn-outline-danger" onclick="deleteSet(this)" {% if set.creator !=username

@@ -2,13 +2,39 @@
 
 Rather than having to reupload the app each time the incidents are changed, I've hooked it into a python backend to allow easier updates.
 
-Navigate to https://unlucky-dip.london.cloudapps.digital/manage
+## Management
 
-Log in with github
+1. Navigate to https://unlucky-dip.london.cloudapps.digital/manage
+2. Log in with GitHub
+3. Either:
+   1. Edit an existing incident list with the Edit buttons
+   2. Delete an existing incident list with the Delete button
+   3. Open the wheel of an existing incident list with the Wheel button
+   4. Create a new incident list with the 'New' link in the header
 
-The rest should explain itself. Hopefully.
+## Notes
 
-# Original description follows
+- It's all backed by S3, so no real cost for the functionality. If it needs to be deployed from fresh, it'll create the various state files automatically. The `default` incident set is loaded from [default_incidents.json](default_incidents.json) on first load.
+- Users can only manage wheels that they have created (although anyone with access to the s3 bucket can do whatever they want)
+- Deploy with `make`, it'll pull oauth credentials from `paas-pass` and the cookie secret from the existing running app (if there is no running app, the make target will automatically generate one).
+- Sessions are stored via the cookie (14 day expiry).
+
+## Development
+
+- Dependencies are managed with `poetry`, `requirements.txt` should not be checked in.
+- To create the venv, `poetry install`
+- Debugging is configured for vscode.
+- Copy `.env.example` to `.env` and update the relevant settings. It's set up for use with localstack, start that with `docker compose up -d`.
+
+### poetry scripts
+
+- `poetry run dev`: starts the app with `uvicorn`
+- `poetry run local_prod`: starts the app with `gunicorn` (as-per prod, but with automatic `.env` loading and listening on 127.0.0.1:8000)
+- `poetry run prod`: the same target that is used when running on CF. This will explode and be annoying to kill if running locally, so try to avoid doing that!
+
+---
+
+# Original Description
 
 **Wheel of Misfortune** is a game that aims to build confidence in on-call engineers via simulated outage scenarios.
 With the game, you practice problem debugging under stress, understanding the incident management protocol,
