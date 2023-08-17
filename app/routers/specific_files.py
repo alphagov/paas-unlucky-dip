@@ -30,6 +30,8 @@ async def specific_favicon(request: Request):
 
 @router.get("/js/wheel.js")
 async def specific_wheel_js(request: Request, q: str = Config.default_id):
+    if not q or q == "":
+        q = Config.default_id
     return js_templates.TemplateResponse(
         "wheel.js",
         {

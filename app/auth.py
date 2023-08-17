@@ -7,6 +7,8 @@ from fastapi import HTTPException
 
 from fastapi import Request
 
+from app.config import Config
+
 
 class OauthEnvarMissing(KeyError):
     def __init__(self, *args):
@@ -16,6 +18,11 @@ class OauthEnvarMissing(KeyError):
 async def verify_user(request: Request):
     if not "user" in request.session.keys():
         raise HTTPException(status_code=401, detail="Not authenticated")
+
+
+async def verify_admin(request: Request):
+    if not request.session["user"]["login"] in Config.config.admin_users:
+        raise HTTPException(status_code=403, detail="Not authorized")
 
 
 class OauthData:

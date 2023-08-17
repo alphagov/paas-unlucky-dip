@@ -1,44 +1,32 @@
 from datetime import datetime
 from typing import List
+from uuid import uuid4
 
-from dateutil import zoneinfo
+import os
 
 import nh3
+from dateutil import zoneinfo
 from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
 from pydantic import (
+    UUID4,
     AwareDatetime,
     BaseModel,
     ConfigDict,
     Field,
     RootModel,
     field_validator,
-    PlainSerializer,
-    BeforeValidator,
 )
-from ulid import ULID as ORIGINAL_ULID
-
-from typing_extensions import Annotated
-
-
-def validate_ulid(v: ORIGINAL_ULID | str) -> ORIGINAL_ULID:
-    if isinstance(v, ORIGINAL_ULID):
-        return v
-    return ORIGINAL_ULID.from_hex(v)
-
-
-ULID = Annotated[
-    ORIGINAL_ULID,
-    Field(default_factory=ORIGINAL_ULID),
-    BeforeValidator(validate_ulid),
-    PlainSerializer(lambda x: x.hex, when_used="json-unless-none"),
-]
 
 
 class Config(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    default_id: ULID = Field(default_factory=ULID)
-    default_creator: str = Field(default="system")
+    default_id: UUID4 = Field(default_factory=uuid4)
+    default_creator: str = Field(default="_system")
+
+    @property
+    def admin_users(self) -> list[str]:
+        return os.getenv("ADMIN_USERS", "").split(",")
 
 
 class Incident(BaseModel):
@@ -64,18 +52,14 @@ IncidentList = RootModel[List[Incident]]
 class IncidentSet(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    id: ULID
+    id: UUID4 = Field(default_factory=uuid4)
     incidents: IncidentList
 
-    creator: str = Field(default="system")
+    creator: str | None = Field(default=None)
     last_modified: AwareDatetime | None = Field(default=None, exclude=True)
     created: AwareDatetime = Field(
         default_factory=lambda: datetime.now(zoneinfo.gettz("UTC"))
     )
-
-    @property
-    def id_hex(self) -> str:
-        return self.id.hex
 
     @classmethod
     def from_incident_list_json(cls, Id: str, json: str | bytes) -> "IncidentSet":
@@ -91,18 +75,14 @@ class IncidentSet(BaseModel):
 class Index(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    forward: dict[str, List[str]] = {}
-    reverse: dict[str, str] = {}
+    forward: dict[str, List[UUID4]] = {}
+    reverse: dict[UUID4, str] = {}
 
-    def add_to_index(self, user: str, incident_set_id: ULID) -> None:
-        incident_set_id = incident_set_id.hex
-
+    def add_to_index(self, user: str, incident_set_id: UUID4) -> None:
         self.forward.setdefault(user, []).append(incident_set_id)
         self.reverse[incident_set_id] = user
 
-    def remove_from_index(self, incident_set_id: ULID) -> None:
-        incident_set_id = incident_set_id.hex
-
+    def remove_from_index(self, incident_set_id: UUID4) -> None:
         user = self.reverse[incident_set_id]
         self.forward[user].remove(incident_set_id)
         del self.reverse[incident_set_id]

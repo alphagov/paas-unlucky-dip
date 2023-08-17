@@ -1,10 +1,10 @@
-from fastapi import APIRouter, HTTPException, Request
-from ulid import ULID
+from fastapi import APIRouter, HTTPException, Request, Depends
 
 from app import crud
 from app.config import Config
 from app.s3 import S3Client
 from app.templates import html_templates
+from app.auth import verify_admin
 
 router = APIRouter()
 
@@ -15,6 +15,7 @@ async def ui_wheel(
     request: Request,
     incident_set_id: str | None = None,
 ):
+    title_suffix = f" ({incident_set_id})" if incident_set_id else ""
     if incident_set_id is None:
         incident_set_id = Config.default_id
 
@@ -27,6 +28,7 @@ async def ui_wheel(
         {
             "request": request,
             "incident_set": incident_set,
+            "title_suffix": title_suffix,
         },
     )
 
@@ -38,22 +40,8 @@ async def ui_manage_list(request: Request):
         "manage.html",
         context={
             "request": request,
-            "action": "list_all",
+            "action": "list",
             "incident_sets": crud.get_all_incident_sets(S3Client),
-        },
-    )
-
-
-@router.get("/manage/list/mine")
-async def ui_manage_list_mine(request: Request):
-    return html_templates.TemplateResponse(
-        "manage.html",
-        context={
-            "request": request,
-            "action": "list_mine",
-            "incident_sets": crud.get_all_incident_sets(
-                S3Client, creator=request.session["user"]["login"]
-            ),
         },
     )
 

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.models import ULID, IncidentList, IncidentSet
+from app.models import UUID4, IncidentList, IncidentSet
 from app.s3 import DipS3Client
 
 from app.index import Index
@@ -11,8 +11,8 @@ class ObjectNotFoundException(Exception):
     pass
 
 
-def s3_key_from_incident_set_id(incident_set_id: ULID) -> str:
-    return f"incident_sets/{incident_set_id.to_uuid()}.json"
+def s3_key_from_incident_set_id(incident_set_id: UUID4) -> str:
+    return f"incident_sets/{incident_set_id}.json"
 
 
 def s3_key_from_incident_set(incident_set: IncidentSet) -> str:
@@ -41,9 +41,7 @@ def init_default_incident_set(
         return put_incident_set(client=client, incident_set=incident_set)
 
 
-def get_incident_set(client: DipS3Client, incident_set_id: ULID | str) -> IncidentSet:
-    if isinstance(incident_set_id, str):
-        incident_set_id = ULID.from_hex(incident_set_id)  # pylint: disable=no-member
+def get_incident_set(client: DipS3Client, incident_set_id: UUID4) -> IncidentSet:
     try:
         s3_obj = client.get_object(Key=s3_key_from_incident_set_id(incident_set_id))
     except client.exceptions.NoSuchKey as exc:
@@ -52,8 +50,9 @@ def get_incident_set(client: DipS3Client, incident_set_id: ULID | str) -> Incide
     return IncidentSet.from_s3_object(s3_obj)
 
 
-def get_all_incident_sets(client: DipS3Client, creator: str | None = None):
-    for i in Index.ids(creator=creator):
+def get_all_incident_sets(client: DipS3Client, *creators: str):
+    creators = [None, *creators]
+    for i in Index.ids(*creators):
         try:
             yield get_incident_set(client=client, incident_set_id=i)
         except ObjectNotFoundException:
@@ -69,12 +68,7 @@ def put_incident_set(client: DipS3Client, incident_set: IncidentSet) -> None:
     return res
 
 
-def delete_incident_set(
-    client: DipS3Client,
-    incident_set_id: ULID | str,
-):
-    if isinstance(incident_set_id, str):
-        incident_set_id = ULID.from_hex(incident_set_id)  # pylint: disable=no-member
+def delete_incident_set(client: DipS3Client, incident_set_id: UUID4):
     res = client.delete_object(Key=s3_key_from_incident_set_id(incident_set_id))
     Index.remove_incident_set(incident_set_id)
     return res
