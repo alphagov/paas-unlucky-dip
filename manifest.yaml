@@ -1,6 +1,6 @@
 ---
 applications:
-  - name: unlucky-dip-py
+  - name: unlucky-dip
     buildpacks:
       - python_buildpack
     services:

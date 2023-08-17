@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import RedirectResponse
 
 from app import crud
 from app.config import Config
@@ -6,6 +7,7 @@ from app.s3 import S3Client
 from app.templates import html_templates
 
 from app.models import UUID4
+
 
 router = APIRouter()
 
@@ -37,15 +39,18 @@ async def ui_wheel(
 @router.get("/manage")
 @router.get("/manage/list")
 async def ui_manage_list(request: Request):
+    context = {
+        "request": request,
+        "action": "list",
+        "incident_sets": [],
+    }
+    if "user" in request.session.keys():
+        context["incident_sets"] = crud.get_all_incident_sets(
+            S3Client, request.session["user"]["login"]
+        )
     return html_templates.TemplateResponse(
         "manage.html",
-        context={
-            "request": request,
-            "action": "list",
-            "incident_sets": crud.get_all_incident_sets(
-                S3Client, request.session["user"]["login"]
-            ),
-        },
+        context=context,
     )
 
 
