@@ -4,7 +4,6 @@ import os
 import boto3
 from mypy_boto3_s3.client import Exceptions
 from mypy_boto3_s3.client import S3Client as S3ClientType
-from mypy_boto3_s3.type_defs import GetObjectOutputTypeDef
 
 
 class DipS3Client:
@@ -29,11 +28,16 @@ class DipS3Client:
     def exceptions(self) -> Exceptions:
         return self.client.exceptions
 
-    def get_object(self, Key: str) -> GetObjectOutputTypeDef:
-        return self.client.get_object(Bucket=self.bucket, Key=Key)
+    def get_object(self, Key: str):
+        res = self.client.get_object(Bucket=self.bucket, Key=Key)
+        return res
 
-    def get_all_objects(self) -> list:
-        return self.client.list_objects_v2(Bucket=self.bucket)["Contents"]
+    def get_all_objects(self, Prefix: str = ""):
+        paginator = self.client.get_paginator("list_objects_v2")
+        page_iterator = paginator.paginate(Bucket=self.bucket, Prefix=Prefix)
+        for page in page_iterator:
+            if "Contents" in page:
+                yield from page["Contents"]
 
     def put_object(self, Key: str, Body: bytes, **kwargs):
         return self.client.put_object(Bucket=self.bucket, Key=Key, Body=Body, **kwargs)

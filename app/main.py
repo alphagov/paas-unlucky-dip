@@ -7,8 +7,9 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app import crud
 from app.auth import OAuthConfig
-from app.defaults import DEFAULT_INCIDENT_SET_ID
-from app.routers import incident_sets, specific_files, ui, auth as auth_router
+from app.index import Index as _
+from app.routers import auth as auth_router
+from app.routers import incident_sets, specific_files, ui
 from app.s3 import S3Client
 
 
@@ -16,11 +17,10 @@ app = FastAPI(title="main app")
 
 
 @app.on_event("startup")
-async def startup():
+async def startup_event():
     crud.init_default_incident_set(
         S3Client,
         Path.cwd() / "default_incidents.json",
-        incident_set_id=DEFAULT_INCIDENT_SET_ID,
     )
 
 

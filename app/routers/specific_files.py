@@ -4,7 +4,7 @@ from starlette.status import HTTP_308_PERMANENT_REDIRECT
 
 from app.templates import misc_templates, js_templates
 
-from app.defaults import DEFAULT_INCIDENT_SET_ID
+from app.config import Config
 
 router = APIRouter()
 
@@ -29,7 +29,7 @@ async def specific_favicon(request: Request):
 
 
 @router.get("/js/wheel.js")
-async def specific_wheel_js(request: Request, q: str = DEFAULT_INCIDENT_SET_ID):
+async def specific_wheel_js(request: Request, q: str = Config.default_id):
     return js_templates.TemplateResponse(
         "wheel.js",
         {

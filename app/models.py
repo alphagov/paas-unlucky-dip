@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List
 
 from dateutil import zoneinfo
@@ -11,10 +11,34 @@ from pydantic import (
     ConfigDict,
     Field,
     RootModel,
-    field_serializer,
     field_validator,
+    PlainSerializer,
+    BeforeValidator,
 )
-from ulid import ULID
+from ulid import ULID as ORIGINAL_ULID
+
+from typing_extensions import Annotated
+
+
+def validate_ulid(v: ORIGINAL_ULID | str) -> ORIGINAL_ULID:
+    if isinstance(v, ORIGINAL_ULID):
+        return v
+    return ORIGINAL_ULID.from_hex(v)
+
+
+ULID = Annotated[
+    ORIGINAL_ULID,
+    Field(default_factory=ORIGINAL_ULID),
+    BeforeValidator(validate_ulid),
+    PlainSerializer(lambda x: x.hex, when_used="json-unless-none"),
+]
+
+
+class Config(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    default_id: ULID = Field(default_factory=ULID)
+    default_creator: str = Field(default="system")
 
 
 class Incident(BaseModel):
@@ -26,7 +50,7 @@ class Incident(BaseModel):
     @field_validator("scenario", "title", mode="before")
     @classmethod
     def clean_html(cls, v: str) -> str:
-        return nh3.clean(
+        return nh3.clean(  # pylint: disable=no-member
             v,
             tags={"a", "br", "h1", "h2", "h3", "h4", "strong"},
             attributes={"a": {"href"}},
@@ -40,20 +64,18 @@ IncidentList = RootModel[List[Incident]]
 class IncidentSet(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    id: ULID | str = Field(default_factory=ULID)
+    id: ULID
     incidents: IncidentList
-    is_default: bool = Field(default=False)
+
+    creator: str = Field(default="system")
     last_modified: AwareDatetime | None = Field(default=None, exclude=True)
     created: AwareDatetime = Field(
         default_factory=lambda: datetime.now(zoneinfo.gettz("UTC"))
     )
-    creator: str | None = Field(default=None)
 
-    @field_serializer("id")
-    def serialize_id(self, v: ULID | str) -> str:
-        if isinstance(v, ULID):
-            return v.hex
-        return v
+    @property
+    def id_hex(self) -> str:
+        return self.id.hex
 
     @classmethod
     def from_incident_list_json(cls, Id: str, json: str | bytes) -> "IncidentSet":
@@ -64,3 +86,23 @@ class IncidentSet(BaseModel):
         i_s = cls.model_validate_json(s3_object["Body"].read())
         i_s.last_modified = s3_object["LastModified"]
         return i_s
+
+
+class Index(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    forward: dict[str, List[str]] = {}
+    reverse: dict[str, str] = {}
+
+    def add_to_index(self, user: str, incident_set_id: ULID) -> None:
+        incident_set_id = incident_set_id.hex
+
+        self.forward.setdefault(user, []).append(incident_set_id)
+        self.reverse[incident_set_id] = user
+
+    def remove_from_index(self, incident_set_id: ULID) -> None:
+        incident_set_id = incident_set_id.hex
+
+        user = self.reverse[incident_set_id]
+        self.forward[user].remove(incident_set_id)
+        del self.reverse[incident_set_id]

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Request
-
+from ulid import ULID
 
 from app import crud
-from app.defaults import DEFAULT_INCIDENT_SET_ID
+from app.config import Config
 from app.s3 import S3Client
 from app.templates import html_templates
 
@@ -11,7 +11,13 @@ router = APIRouter()
 
 @router.get("/")
 @router.get("/set/{incident_set_id}")
-async def ui_wheel(request: Request, incident_set_id: str = DEFAULT_INCIDENT_SET_ID):
+async def ui_wheel(
+    request: Request,
+    incident_set_id: str | None = None,
+):
+    if incident_set_id is None:
+        incident_set_id = Config.default_id
+
     try:
         incident_set = crud.get_incident_set(S3Client, incident_set_id)
     except crud.ObjectNotFoundException as exc:
@@ -63,7 +69,7 @@ async def ui_manage_new(request: Request):
     )
 
 
-@router.get("/manage/edit/{incident_set_id}")
+@router.get("/manage/edit/{incident_set_id}}")
 async def ui_manage_edit(request: Request, incident_set_id: str):
     try:
         incident_set = crud.get_incident_set(S3Client, incident_set_id)

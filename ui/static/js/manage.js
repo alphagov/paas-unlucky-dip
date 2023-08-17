@@ -66,7 +66,7 @@ if (document.getElementById("editIncidentSetForm")) {
         incidents.push(incident);
       });
       $.ajax({
-        url: "/api/v1/sets/" + setID,
+        url: `/api/v1/sets/${setID}`,
         type: "POST",
         data: JSON.stringify(incidents),
         contentType: "application/json; charset=utf-8",

@@ -91,7 +91,7 @@
             <hr class="mw3 bb bw1 b--black-10">
             <div id="wheel"></div>
             <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-            <script src="{{ url_for('specific_wheel_js').include_query_params(q=incident_set.id) }}"></script>
+            <script src="{{ url_for('specific_wheel_js').include_query_params(q=incident_set.id_hex) }}"></script>
         </div>
         <div class="fl w-100 w-50-ns tc pa3">
             <article id="incident">

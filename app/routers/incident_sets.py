@@ -4,9 +4,16 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from app import crud
 from app.s3 import S3Client
 from app.models import IncidentList, IncidentSet
-from app.defaults import DEFAULT_INCIDENT_SET_ID
 
 from app.auth import verify_user
+from app.index import Index
+
+
+async def verify_creator(request: Request, incident_set_id: str):
+    creator = Index.get_creator(incident_set_id)
+    if creator != request.session["user"]["login"]:
+        raise HTTPException(status_code=403, detail="Not your incident set")
+
 
 router = APIRouter()
 
@@ -29,11 +36,16 @@ def api_put_incident_set(request: Request, incident_list: IncidentList):
 
 
 @router.post(
-    "/sets/{incident_set_id}", status_code=200, dependencies=[Depends(verify_user)]
+    "/sets/{incident_set_id}",
+    status_code=200,
+    dependencies=[Depends(verify_user), Depends(verify_creator)],
 )
 def api_update_incident_set(incident_set_id: str, incident_list: IncidentList):
     try:
-        original_incident_set = crud.get_incident_set(S3Client, incident_set_id)
+        original_incident_set = crud.get_incident_set(
+            S3Client,
+            incident_set_id,
+        )
     except crud.ObjectNotFoundException as exc:
         raise HTTPException(status_code=404, detail="Incident set not found") from exc
 
@@ -45,12 +57,11 @@ def api_update_incident_set(incident_set_id: str, incident_list: IncidentList):
     return original_incident_set
 
 
-@router.delete("/sets/{incident_set_id}", dependencies=[Depends(verify_user)])
+@router.delete(
+    "/sets/{incident_set_id}",
+    dependencies=[Depends(verify_user), Depends(verify_creator)],
+)
 def api_delete_incident_set(incident_set_id: str):
-    if incident_set_id == DEFAULT_INCIDENT_SET_ID:
-        raise HTTPException(
-            status_code=400, detail="Cannot delete default incident set"
-        )
     try:
         crud.delete_incident_set(S3Client, incident_set_id)
     except crud.ObjectNotFoundException as exc:

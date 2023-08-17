@@ -1,3 +1,9 @@
+{% if request.session.user %}
+{% set logged_in = True %}
+{% set username = request.session.user.login %}
+{% else %}
+{% set logged_in = False %}
+{% endif %}
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 
@@ -29,7 +35,7 @@
               <img src="{{ url_for('static', path='/img/favicon-32x32.png') }}" alt="" width="32" height="32">
             </div>
           </a>
-          {% if request.session %}
+          {% if logged_in %}
           <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
             <li><a href="{{ url_for('ui_manage_list') }}"
                 class="nav-link px-2 {% if action == 'list_all' %}link-secondary{% else %}link-body-emphasis{% endif %}">List
@@ -47,7 +53,7 @@
           <div class="dropdown text-end">
             <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
               data-bs-toggle="dropdown" aria-expanded="false">
-              <img src="{{request.session.user.avatar_url}}" alt="{{request.session.user.login}}" width="32" height="32"
+              <img src="{{request.session.user.avatar_url}}" alt="{{username}}" width="32" height="32"
                 class="rounded-circle">
             </a>
             <ul class="dropdown-menu text-small">
@@ -55,6 +61,7 @@
             </ul>
           </div>
           {% else %}
+          <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0"></ul>
           <a class="btn btn-outline-primary me-2" href="{{ url_for('auth_login') }}">Login</a>
           {% endif %}
         </div>
@@ -62,9 +69,9 @@
     </header>
 
     <main>
-      {% if request.session %}
+      {% if logged_in %}
       {% if action == "new" %}
-      <form id="incidentSetForm">
+      <form id="incidentSetForm" data-set-creator="{{username}}">
         <div class="row g-3 incident">
           <div class="col-sm-3">
             <input type="text" class="form-control inputTitle" placeholder="Title" aria-label="Title" required>
@@ -87,7 +94,7 @@
         </div>
       </form>
       {% elif action == "edit" %}
-      <form id="editIncidentSetForm" data-set-id="{{incident_set.id}}">
+      <form id="editIncidentSetForm" data-set-id="{{incident_set.id_hex}}">
         {% for incident in incident_set.incidents.root %}
         <div class="row g-3 incident">
           <div class="col-sm-3">
@@ -110,7 +117,8 @@
           </div>
         </div>
         <div class="col-12">
-          <button type="submit" class="btn btn-primary">Submit</button>
+          <button type="submit" class="btn btn-primary" {{ 'disabled' if incident_set.creator !=username
+            }}>Submit</button>
         </div>
       </form>
       {% elif action in ["list_all", "list_mine"] %}
@@ -126,15 +134,15 @@
         </thead>
         <tbody>
           {% for set in incident_sets %}
-          <tr data-set-id="{{set.id}}" class="incident-set">
-            <td>{{set.id}}</th>
+          <tr data-set-id="{{set.id_hex}}" data-set-creator="{{set.creator}}" class="incident-set">
+            <td>{{set.id_hex}}</th>
             <td><span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{set.created |
                 date_rfc1123}}">{{set.created |
                 date_relative}}</span></td>
             <td><span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{set.last_modified |
                 date_rfc1123}}">{{set.last_modified |
                 date_relative}}</span></td>
-            <td>{% if set.creator %}
+            <td>{% if set.creator and set.creator != 'system' %}
               <div class="d-flex">
                 <a href="https://github.com/{{set.creator}}" class="text-decoration-none" target="_blank">
                   <span
@@ -150,11 +158,12 @@
             </td>
             <td>
               <div class="col">
-                <a href="{{ url_for('ui_wheel', incident_set_id=set.id) }}" class="btn btn-outline-success">Wheel</a>
-                <a href="{{ url_for('ui_manage_edit', incident_set_id=set.id) }}"
+                <a href="{{ url_for('ui_wheel', incident_set_id=set.id_hex) }}"
+                  class="btn btn-outline-success">Wheel</a>
+                <a href="{{ url_for('ui_manage_edit', incident_set_id=set.id_hex) }}"
                   class="btn btn-outline-primary">Edit</a>
-                <button class="btn btn-outline-danger" onclick="deleteSet(this)" {% if set.is_default %}disabled{% endif
-                  %}>Delete</a>
+                <button class="btn btn-outline-danger" onclick="deleteSet(this)" {% if set.creator !=username
+                  %}disabled{% endif %}>Delete</a>
               </div>
             </td>
           </tr>
