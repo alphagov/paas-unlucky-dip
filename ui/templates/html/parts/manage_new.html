@@ -1,0 +1,27 @@
+<form id="incidentSetForm" class="incidentSetForm" data-set-creator="{{ username }}">
+    <div class="mb-3">
+        <label for="setName" class="form-label">Incident Set Name</label>
+        <input type="text" class="form-control" id="setName" placeholder="">
+    </div>
+    <hr />
+    <div class="row g-3 incident">
+        <div class="col-sm-3">
+            <input type="text" class="form-control inputTitle" placeholder="Title" aria-label="Title" required>
+        </div>
+        <div class="col-sm">
+            <input type="text" class="form-control inputScenario" placeholder="Scenario" aria-label="Scenario" required>
+        </div>
+        <div class="col-sm-1">
+            <input class="btn btn-outline-danger removeIncident" type="button" value="Remove"
+                onclick="removeIncident(this)" disabled>
+        </div>
+    </div>
+    <div class="row justify-content-md-center">
+        <div class="col col-lg-1">
+            <input class="btn btn-outline-primary" type="button" value="Add Another" onclick="addAnother()">
+        </div>
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</form>

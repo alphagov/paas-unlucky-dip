@@ -19,8 +19,8 @@
 </head>
 
 <body>
-    <a href="https://github.com/dastergon/wheel-of-misfortune" class="github-corner"
-        aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250"
+    <a href="https://github.com/alphagov/paas-unlucky-dip" class="github-corner" aria-label="View source on GitHub"
+        target="_blank"><svg width="80" height="80" viewBox="0 0 250 250"
             style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
             <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
             <path
@@ -69,6 +69,7 @@
             <h1 class="athelas i white-ft f1">Wheel of Misfortune</h1>
         </a>
         <h1 class="white-ft f4">A role-playing game for incident management training</h1>
+        {% if subtitle %}<h2>{{subtitle}}</h2>{% endif %}
         <small class="white-ft ">Inspired by the
             <a
                 href="https://landing.google.com/sre/book/chapters/accelerating-sre-on-call.html#xref_training_disaster-rpg">Site

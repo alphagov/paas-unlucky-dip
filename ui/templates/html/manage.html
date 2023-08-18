@@ -1,6 +1,6 @@
-{% if request.session.user %}
+{% if request.state.user %}
 {% set logged_in = True %}
-{% set username = request.session.user.login %}
+{% set username = request.state.user.login %}
 {% else %}
 {% set logged_in = False %}
 {% endif %}
@@ -48,7 +48,7 @@
           <div class="dropdown text-end">
             <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle"
               data-bs-toggle="dropdown" aria-expanded="false">
-              <img src="{{request.session.user.avatar_url}}" alt="{{username}}" width="32" height="32"
+              <img src="{{request.state.user.sized_avatar_url(32)}}" alt="{{username}}" width="32" height="32"
                 class="rounded-circle">
             </a>
             <ul class="dropdown-menu text-small">
@@ -65,116 +65,16 @@
 
     <main>
       {% if logged_in %}
-      {% if action == "new" %}
-      <form id="incidentSetForm" data-set-creator="{{username}}">
-        <div class="row g-3 incident">
-          <div class="col-sm-3">
-            <input type="text" class="form-control inputTitle" placeholder="Title" aria-label="Title" required>
-          </div>
-          <div class="col-sm">
-            <input type="text" class="form-control inputScenario" placeholder="Scenario" aria-label="Scenario" required>
-          </div>
-          <div class="col-sm-1">
-            <input class="btn btn-outline-danger removeIncident" type="button" value="Remove"
-              onclick="removeIncident(this)" disabled>
-          </div>
-        </div>
-        <div class="row justify-content-md-center">
-          <div class="col col-lg-1">
-            <input class="btn btn-outline-primary" type="button" value="Add Another" onclick="addAnother()">
-          </div>
-        </div>
-        <div class="col-12">
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </div>
-      </form>
+      {% if action == "home" %}
+      <div class="alert alert-primary" role="alert">
+        Manage Incident Sets with the links above.
+      </div>
+      {% elif action == "new" %}
+      {% include 'parts/manage_new.html' %}
       {% elif action == "edit" %}
-      <form id="editIncidentSetForm" data-set-id="{{incident_set.id}}">
-        {% for incident in incident_set.incidents.root %}
-        <div class="row g-3 incident">
-          <div class="col-sm-3">
-            <input type="text" class="form-control inputTitle" placeholder="Title" aria-label="Title" required
-              value="{{incident.title}}">
-          </div>
-          <div class="col-sm">
-            <input type="text" class="form-control inputScenario" placeholder="Scenario" aria-label="Scenario" required
-              value="{{incident.scenario}}">
-          </div>
-          <div class="col-sm-1">
-            <input class="btn btn-outline-danger removeIncident" type="button" value="Remove"
-              onclick="removeIncident(this)">
-          </div>
-        </div>
-        {% endfor %}
-        <div class="row justify-content-md-center">
-          <div class="col col-lg-1">
-            <input class="btn btn-outline-primary" type="button" value="Add Another" onclick="addAnother()">
-          </div>
-        </div>
-        <div class="col-12">
-          <button type="submit" class="btn btn-primary" {{ 'disabled' if incident_set.creator !=username
-            }}>Submit</button>
-        </div>
-      </form>
+      {% include 'parts/manage_edit.html' %}
       {% elif action == "list" %}
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Created</th>
-            <th scope="col">Last Modified</th>
-            <th scope="creator">Creator</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for set in incident_sets %}
-          <tr data-set-id="{{set.id}}" data-set-creator="{{set.creator}}" class="incident-set">
-            <td>{{set.id}}</th>
-            <td><span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{set.created |
-                date_rfc1123}}">{{set.created |
-                date_relative}}</span></td>
-            <td><span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{set.last_modified |
-                date_rfc1123}}">{{set.last_modified |
-                date_relative}}</span></td>
-            <td>{% if set.creator and set.creator != default_creator %}
-              <div class="d-flex">
-                <a href="https://github.com/{{set.creator}}" class="text-decoration-none" target="_blank">
-                  <span
-                    class="badge d-flex align-items-center p-1 pe-2 text-dark-emphasis bg-light-subtle border border-dark-subtle rounded-pill">
-                    <img class="rounded-circle me-1" width="24" height="24" src="https://github.com/{{set.creator}}.png"
-                      alt="{{set.creator}}">{{set.creator}}
-                  </span>
-                </a>
-              </div>
-              {% else %}
-              <div class="d-flex">
-                <span
-                  class="badge d-flex align-items-center p-1 pe-2 text-dark-emphasis bg-light-subtle border border-dark-subtle rounded-pill">
-                  {# <a href="https://www.flaticon.com/free-icons/robot" title="robot icons">Robot icons created by
-                    Hilmy Abiyyu A. - Flaticon</a> #}
-                  <img class="rounded-circle me-1" width="24" height="24"
-                    src="{{ url_for('static', path='/img/robot.png') }}" alt="Robot icons created by
-                    Hilmy Abiyyu A. - Flaticon">[system]
-                </span>
-                </a>
-              </div>
-              {% endif %}
-            </td>
-            <td>
-              <div class="col">
-                <a href="{{ url_for('ui_wheel', incident_set_id=set.id) }}" class="btn btn-outline-success"
-                  target="_blank">Wheel</a>
-                <a href="{{ url_for('ui_manage_edit', incident_set_id=set.id) }}"
-                  class="btn btn-outline-primary">Edit</a>
-                <button class="btn btn-outline-danger" onclick="deleteSet(this)" {% if set.creator !=username
-                  %}disabled{% endif %}>Delete</a>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      {% include 'parts/manage_list.html' %}
       {% else %}
       <div class="alert alert-danger" role="alert">
         Invalid action.
@@ -182,7 +82,7 @@
       {% endif %}
       {% else %}
       <div class="alert alert-danger" role="alert">
-        You must be logged in to add a new incident set.
+        You must be logged in to manage incident sets.
       </div>
       {% endif %}
     </main>

@@ -1,6 +1,6 @@
 {
   "files.associations": {
-    "**/ui/templates/html/*": "jinja-html",
+    "**/ui/templates/html/**/*.html": "jinja-html",
     "**/ui/templates/js/*": "jinja-js"
   }
 }

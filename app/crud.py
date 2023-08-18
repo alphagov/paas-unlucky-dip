@@ -1,10 +1,9 @@
 from pathlib import Path
 
+from app.config import Config
+from app.index import DuplicateIncidentSetIdException, Index
 from app.models import UUID4, IncidentList, IncidentSet
 from app.s3 import DipS3Client
-
-from app.index import Index
-from app.config import Config
 
 
 class ObjectNotFoundException(Exception):
@@ -23,22 +22,20 @@ def init_default_incident_set(
     client: DipS3Client,
     default_incident_set_file: Path,
 ) -> None:
-    try:
-        get_incident_set(client=client, incident_set_id=Config.default_id)
-    except ObjectNotFoundException:
-        incident_set = IncidentSet.model_construct(
-            id=Config.default_id,
-            creator=Config.default_creator,
-            incidents=[],
+    incident_set = IncidentSet.model_construct(
+        id=Config.default_id,
+        creator=Config.default_creator,
+        name="Default",
+        incidents=[],
+    )
+
+    if default_incident_set_file.is_file():
+        incidents = IncidentList.model_validate_json(
+            default_incident_set_file.read_text()
         )
+        incident_set.incidents = incidents
 
-        if default_incident_set_file.is_file():
-            incidents = IncidentList.model_validate_json(
-                default_incident_set_file.read_text()
-            )
-            incident_set.incidents = incidents
-
-        return put_incident_set(client=client, incident_set=incident_set)
+    return put_incident_set(client=client, incident_set=incident_set)
 
 
 def get_incident_set(client: DipS3Client, incident_set_id: UUID4) -> IncidentSet:
@@ -64,7 +61,10 @@ def put_incident_set(client: DipS3Client, incident_set: IncidentSet) -> None:
         Key=s3_key_from_incident_set(incident_set),
         Body=incident_set.model_dump_json().encode("utf-8"),
     )
-    Index.add_incident_set(incident_set)
+    try:
+        Index.add_incident_set(incident_set)
+    except DuplicateIncidentSetIdException:
+        pass
     return res
 
 

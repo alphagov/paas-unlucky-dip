@@ -27,5 +27,8 @@ class ConfigController:
     def default_creator(self):
         return self.config.default_creator
 
+    def is_admin(self, user: str) -> bool:
+        return user in self.config.admin_users
+
 
 Config = ConfigController(S3Client)

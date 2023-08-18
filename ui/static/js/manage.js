@@ -10,7 +10,7 @@ function addAnother() {
         <input class="btn btn-outline-danger removeIncident" type="button" value="Remove" onclick="removeIncident(this);">
       </div>
     </div>`);
-  var lastIncident = $('#incidentSetForm .incident:last');
+  var lastIncident = $('.incidentSetForm .incident:last');
   lastIncident.find('.removeIncident').removeAttr('disabled');
   newDiv.insertAfter(lastIncident);
 }
@@ -18,7 +18,7 @@ function addAnother() {
 function removeIncident(element) {
   var incident = $(element).closest('.incident');
   incident.remove();
-  var incidents = $('#incidentSetForm .incident');
+  var incidents = $('.incidentSetForm .incident');
   if (incidents.length == 1) {
     incidents.find('.removeIncident').attr('disabled', 'disabled');
   }
@@ -40,7 +40,7 @@ if (document.getElementById("incidentSetForm")) {
       $.ajax({
         url: "/api/v1/sets",
         type: "PUT",
-        data: JSON.stringify(incidents),
+        data: JSON.stringify({ incidents: incidents, name: $('#incidentSetForm #setName').val() }),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
           window.location.href = `/set/${data.id}`;
@@ -68,7 +68,7 @@ if (document.getElementById("editIncidentSetForm")) {
       $.ajax({
         url: `/api/v1/sets/${setID}`,
         type: "POST",
-        data: JSON.stringify(incidents),
+        data: JSON.stringify({ incidents: incidents, name: $('#editIncidentSetForm #setName').val() }),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
           window.location.href = `/set/${data.id}`;

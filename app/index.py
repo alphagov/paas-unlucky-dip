@@ -1,6 +1,10 @@
-from app.models import IncidentSet
-from app.models import Index as IndexModel, UUID4
+from app.models import UUID4, IncidentSet
+from app.models import Index as IndexModel
 from app.s3 import DipS3Client, S3Client
+
+
+class DuplicateIncidentSetIdException(Exception):
+    pass
 
 
 class IncidentSetIndex:
@@ -37,7 +41,7 @@ class IncidentSetIndex:
 
     def ids(self, *creators) -> list[str]:
         for creator in creators:
-            yield from self.index.forward.get(creator, [])
+            yield from self.index.forward.get(creator, []).keys()
 
     def get_creator(self, incident_set_id: str) -> str:
         return self.index.reverse[incident_set_id]

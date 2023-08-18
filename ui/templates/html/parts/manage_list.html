@@ -1,0 +1,67 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Created</th>
+            <th scope="col">Last Modified</th>
+            <th scope="creator">Creator</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for set in incident_sets %}
+        <tr data-set-id="{{set.id}}" data-set-creator="{{set.creator}}" class="incident-set">
+            <th scope="row">
+                {% if set.name %}
+                <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{set.id}}">
+                    {{ set.name }}
+                </span>
+                {% else %}
+                <span>
+                    [{{ set.id }}]
+                </span>
+                {% endif %}
+            </th>
+            <td><span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{set.created |
+                date_rfc1123}}">{{set.created |
+                    date_relative}}</span></td>
+            <td><span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="{{set.last_modified |
+                date_rfc1123}}">{{set.last_modified |
+                    date_relative}}</span></td>
+            <td>{% if set.creator and set.creator != default_creator %}
+                <div class="d-flex">
+                    <a href="https://github.com/{{set.creator}}" class="text-decoration-none" target="_blank">
+                        <span
+                            class="badge d-flex align-items-center p-1 pe-2 text-dark-emphasis bg-light-subtle border border-dark-subtle rounded-pill">
+                            <img class="rounded-circle me-1" width="24" height="24"
+                                src="https://github.com/{{set.creator}}.png?size=24"
+                                alt="{{set.creator}}">{{set.creator}}
+                        </span>
+                    </a>
+                </div>
+                {% else %}
+                <div class="d-flex">
+                    <span
+                        class="badge d-flex align-items-center p-1 pe-2 text-dark-emphasis bg-light-subtle border border-dark-subtle rounded-pill">
+                        <!-- Robot icons created by Hilmy Abiyyu A. - Flaticon: https://www.flaticon.com/free-icons/robot -->
+                        <img class="rounded-circle me-1" width="24" height="24"
+                            src="{{ url_for('static', path='/img/robot.png') }}" alt="Robot icons created by
+                    Hilmy Abiyyu A. - Flaticon">[system]
+                    </span>
+                </div>
+                {% endif %}
+            </td>
+            <td>
+                <div class="col">
+                    <a href="{{ url_for('ui_wheel', incident_set_id=set.id) }}" class="btn btn-outline-success"
+                        target="_blank">Wheel</a>
+                    <a href="{{ url_for('ui_manage_edit', incident_set_id=set.id) }}"
+                        class="btn btn-outline-primary">Edit</a>
+                    <button class="btn btn-outline-danger" onclick="deleteSet(this)" {% if set.creator !=username
+                        %}disabled{% endif %}>Delete</button>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

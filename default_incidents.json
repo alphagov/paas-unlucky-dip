@@ -1,27 +1,12 @@
 [
   {
     "ID": "1",
-    "title": "Incident 1",
-    "scenario": "Pagerduty alert: failing smoke tests in prod"
+    "title": "Unlucky Dip Time!",
+    "scenario": "Oh no! It's unlucky dip time!"
   },
   {
     "ID": "2",
-    "title": "Incident 2",
-    "scenario": "Support ticket received from a tenant: 'Help! I can't log in to PaaS, and I need to make a change to my service.'"
-  },
-  {
-    "ID": "3",
-    "title": "Incident 3",
-    "scenario": "Support ticket received from a tenant: 'Hi. We've been told that our users can't use our department SSO to sign into apps…. Do you know what's going on? Looks like the application is running and is logging that it's database connection has gone away.'"
-  },
-  {
-    "ID": "4",
-    "title": "Incident 4",
-    "scenario": "Pagerduty alert: 3 successive smoke test failures in prod (Ireland)"
-  },
-  {
-    "ID": "5",
-    "title": "Incident 5",
-    "scenario": "Support ticket received from a tenant: 'Can't see any logs in our ELK stack. Any idea what's going on?!'"
+    "title": "Missing Incidents",
+    "scenario": "Someone started an unlucky dip session, but forgot to add any incidents!"
   }
 ]

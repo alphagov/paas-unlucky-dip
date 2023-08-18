@@ -6,12 +6,11 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app import crud
-from app.auth import OAuthConfig
+from app.auth import AuthUserMiddleware, OAuthConfig
 from app.index import Index as _
 from app.routers import auth as auth_router
 from app.routers import incident_sets, specific_files, ui
 from app.s3 import S3Client
-
 
 app = FastAPI(title="main app")
 
@@ -24,6 +23,7 @@ async def startup_event():
     )
 
 
+app.add_middleware(AuthUserMiddleware)
 app.add_middleware(SessionMiddleware, secret_key=OAuthConfig.SECRET_KEY)
 app.mount("/static", StaticFiles(directory="ui/static", html=True), name="static")
 app.include_router(auth_router.router, prefix="/auth")

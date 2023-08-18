@@ -1,0 +1,40 @@
+{% set user_is_creator = incident_set.creator == username %}
+{% if not user_is_creator %}
+<div class="alert alert-warning" role="alert">
+    You are not the creator of this incident set. You can view it, but you cannot edit it.
+</div>
+{% endif %}
+<form id="editIncidentSetForm" class="incidentSetForm" data-set-id="{{incident_set.id}}">
+    <div class="mb-3">
+        <label for="setName" class="form-label">Incident Set Name</label>
+        <input type="text" id="setName" class="form-control" placeholder="" value="{{incident_set.name or ''}}"
+            {{ 'readonly' if not user_is_creator }}>
+    </div>
+    <hr />
+    {% for incident in incident_set.incidents.root %}
+    <div class="row g-3 incident">
+        <div class="col-sm-3">
+            <input type="text" class="form-control inputTitle" placeholder="Title" aria-label="Title" required
+                value="{{incident.title}}" {{ 'readonly' if not user_is_creator }}>
+        </div>
+        <div class="col-sm">
+            <input type="text" class="form-control inputScenario" placeholder="Scenario" aria-label="Scenario" required
+                value="{{incident.scenario}}" {{ 'readonly' if not user_is_creator }}>
+        </div>
+        <div class="col-sm-1">
+            <input class="btn btn-outline-danger removeIncident" type="button" value="Remove" {% if not user_is_creator
+                or incident_set.incidents.root | length==1 %}disabled{% else %}onclick="removeIncident(this)" {% endif
+                %}>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="row justify-content-md-center">
+        <div class="col col-lg-1">
+            <input class="btn btn-outline-primary" type="button" value="Add Another" {% if not user_is_creator
+                %}disabled{% else %}onclick="addAnother()" {% endif %}>
+        </div>
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary" {{ 'disabled' if not user_is_creator }}>Submit</button>
+    </div>
+</form>

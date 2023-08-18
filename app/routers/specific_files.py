@@ -2,9 +2,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import RedirectResponse
 from starlette.status import HTTP_308_PERMANENT_REDIRECT
 
-from app.templates import misc_templates, js_templates
-
 from app.config import Config
+from app.templates import js_templates, misc_templates
 
 router = APIRouter()
 

@@ -1,13 +1,14 @@
 import os
-
+from typing import NamedTuple
 
 from authlib.integrations.starlette_client import OAuth as StarletteOAuth
 from authlib.integrations.starlette_client.apps import StarletteOAuth2App
-from fastapi import HTTPException
-
-from fastapi import Request
+from fastapi import HTTPException, Request
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.responses import Response
 
 from app.config import Config
+from app.models import GithubUser
 
 
 class OauthEnvarMissing(KeyError):
@@ -15,14 +16,35 @@ class OauthEnvarMissing(KeyError):
         super().__init__(*args)
 
 
-async def verify_user(request: Request):
-    if not "user" in request.session.keys():
+class AuthUserMiddleware(BaseHTTPMiddleware):
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
+        gh_user = None
+        if request.session and "user" in request.session.keys():
+            gh_user = GithubUser(**request.session["user"])
+        request.state.user = gh_user
+        request.state.is_admin = Config.is_admin(gh_user.login) if gh_user else False
+        response = await call_next(request)
+        return response
+
+
+class RequestState(NamedTuple):
+    user: GithubUser | None
+    is_admin: bool
+
+
+class RequestWithUser(Request):
+    state: RequestState
+
+
+async def verify_auth(request: RequestWithUser):
+    return request.state.user is not None
+
+
+async def verify_user(request: RequestWithUser):
+    if not await verify_auth(request):
         raise HTTPException(status_code=401, detail="Not authenticated")
-
-
-async def verify_admin(request: Request):
-    if not request.session["user"]["login"] in Config.config.admin_users:
-        raise HTTPException(status_code=403, detail="Not authorized")
 
 
 class OauthData:
@@ -80,8 +102,8 @@ class GithubOAuthConfig(OauthData):
         user.raise_for_status()
         return user.json()
 
-    async def user_is_org_member(self, *, token: dict, user_data: dict) -> bool:
-        orgs = await self.client.get(user_data["organizations_url"], token=token)
+    async def user_is_org_member(self, *, token: dict, user: GithubUser) -> bool:
+        orgs = await self.client.get(str(user.organizations_url), token=token)
         orgs.raise_for_status()
         return any(org["login"] == self.GITHUB_ORG for org in orgs.json())
 
